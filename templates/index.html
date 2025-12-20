@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Multi-Agent Travel Assistant</title>
+
+    <!-- Leaflet CSS & JS (OpenStreetMap) -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f6f8;
+        }
+
+        h2 {
+            color: #2c3e50;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            margin-left: 8px;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        ul {
+            background: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>🌍 AI Multi-Agent Travel Assistant</h2>
+{% if result and result.error %}
+    <p style="color:red;"><b>{{ result.error }}</b></p>
+{% endif %}
+
+<!-- NLP INPUT FORM -->
+<form method="POST">
+    <input
+        type="text"
+        name="query"
+        placeholder="Plan a trip to Kochi"
+        required
+    />
+    <button type="submit">Search</button>
+</form>
+
+{% if result %}
+<hr>
+
+<h3>Destination: {{ result.destination }}</h3>
+
+<!-- FLIGHTS -->
+<div class="section">
+    <h4>✈️ Flights</h4>
+    {% if result.flights %}
+        <ul>
+        {% for f in result.flights %}
+            <li>{{ f.flight }} — {{ f.time }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No flight data available.</p>
+    {% endif %}
+</div>
+
+<!-- PLACES -->
+<div class="section">
+    <h4>📍 Places to Visit</h4>
+    {% if result.places %}
+        <ul>
+        {% for p in result.places %}
+            <li>{{ p }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No places found.</p>
+    {% endif %}
+</div>
+
+<!-- MAP & HOTELS -->
+<div class="section">
+    <h4>🏨 Hotels (OpenStreetMap)</h4>
+    <div id="map"></div>
+</div>
+
+<script>
+    // Initialize map
+    const map = L.map('map').setView(
+        [{{ result.lat }}, {{ result.lon }}],
+        13
+    );
+
+    // Load OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // City marker
+    L.marker([{{ result.lat }}, {{ result.lon }}])
+        .addTo(map)
+        .bindPopup("{{ result.destination }}")
+        .openPopup();
+
+    // ✅ SAFE HOTEL MARKERS (NO CRASH)
+    {% if result.hotels %}
+        {% for h in result.hotels %}
+            {% if h.lat is defined and h.lon is defined %}
+                L.marker([{{ h.lat }}, {{ h.lon }}])
+                    .addTo(map)
+                    .bindPopup("Hotel");
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>
+
+<!-- RESTAURANT -->
+<div class="section">
+    <h4>🍽️ Best Restaurant Recommendation</h4>
+    {% if result.restaurant %}
+        <p><b>{{ result.restaurant.name }}</b></p>
+        <p><b>Why:</b> {{ result.restaurant.reason }}</p>
+        <p><b>Special:</b> {{ result.restaurant.special }}</p>
+    {% else %}
+        <p>No restaurant data available.</p>
+    {% endif %}
+</div>
+
+{% endif %}
+
+</body>
+</html>
