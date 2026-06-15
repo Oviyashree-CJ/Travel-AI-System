@@ -20,9 +20,16 @@ def geocode_city(city):
         "key": os.getenv("OPENCAGE_API_KEY"),
         "limit": 1
     }
+    print("API Key Exists:", bool(os.getenv("OPENCAGE_API_KEY")))
+    print("City:", city)
 
     try:
-        res = requests.get(url, params=params, timeout=10).json()
+        response = requests.get(url, params=params, timeout=10)
+
+        print("Status Code:", response.status_code)
+        print("Response Text:", response.text[:500])
+
+        res = response.json()
 
         # ✅ SAFE CHECK
         if not res.get("results"):
