@@ -45,6 +45,9 @@ def index():
         user_input = request.form["query"]
         destination = extract_destination(user_input)
 
+        print("User Input:", user_input)
+        print("Destination:", destination)
+
         if destination:
             lat, lon = geocode_city(destination)
 
